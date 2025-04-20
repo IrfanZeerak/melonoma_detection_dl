@@ -1,2 +1,6 @@
 streamlit
-pip install streamlit
+torch
+torchvision
+numpy
+pillow
+opencv-python
