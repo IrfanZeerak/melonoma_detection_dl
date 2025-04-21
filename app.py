@@ -1,30 +1,30 @@
 import streamlit as st
 from PIL import Image
 import numpy as np
-import torch
-from utils.inference import classify_image, segment_image
-from utils.gradcam import generate_gradcam
+import tensorflow as tf
+import cv2  # for image processing and heatmap overlay
 
-st.set_page_config(page_title="Melanoma Detection System", layout="wide")
-st.title("🧠 AI-Powered Melanoma Detection & Segmentation")
+# Load the trained model (ensure the .h5 file is in the same directory as this app)
+model = tf.keras.models.load_model("densenet121_skin_cancer.h5")
 
-uploaded_file = st.file_uploader("Upload a skin lesion image", type=["jpg", "png", "jpeg"])
+# Class names corresponding to model output indices
+class_names = ["Actinic Keratosis", "Basal Cell Carcinoma", "Dermatofibroma",
+               "Melanoma", "Nevus", "Pigmented Benign Keratosis",
+               "Seborrheic Keratosis", "Squamous Cell Carcinoma", "Vascular Lesion"]
 
-if uploaded_file:
-    image = Image.open(uploaded_file).convert("RGB")
+# App title and description
+st.title("Skin Lesion Classification with Grad-CAM")
+st.write("Upload a dermoscopic image of a skin lesion to predict its disease category "
+         "and visualize the affected area with Grad-CAM heatmap.")
+
+# File uploader for image
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+if uploaded_file is not None:
+    # Open the image file
+    image = Image.open(uploaded_file)
     st.image(image, caption="Uploaded Image", use_column_width=True)
-
-    # Classification
-    st.subheader("📊 Disease Classification")
-    class_label, confidence = classify_image(image)
-    st.success(f"Predicted Class: **{class_label}** ({confidence*100:.2f}% confidence)")
-
-    # Grad-CAM Heatmap
-    st.subheader("🔥 Grad-CAM Heatmap")
-    gradcam_img = generate_gradcam(image)
-    st.image(gradcam_img, caption="Grad-CAM", use_column_width=True)
-
-    # Segmentation
-    st.subheader("🧬 Lesion Segmentation")
-    mask = segment_image(image)
-    st.image(mask, caption="U-Net Segmentation Mask", use_column_width=True)
+    
+    # Preprocess the image to feed into the model
+    img = image.resize((224, 224))                # resize to 224x224
+    img_array = np.array(img) / 255.0             # scale pixel values [0,1]
+    img_tensor = np.expand_dims(img_array, axis=0)  # add batch dimension
