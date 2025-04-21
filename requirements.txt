@@ -1,6 +1,5 @@
-streamlit
-torch
-torchvision
-numpy
-pillow
-opencv-python
+streamlit==1.24.0        # Streamlit (UI framework)
+tensorflow==2.12.0       # TensorFlow (for Keras model)
+opencv-python-headless==4.8.0.74   # OpenCV for image processing (headless version for servers)
+Pillow==9.5.0            # PIL for image handling
+numpy==1.23.5            # NumPy for array manipulations
